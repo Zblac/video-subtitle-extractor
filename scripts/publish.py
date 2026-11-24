@@ -66,11 +66,25 @@ class GH:
             return e.code, parsed
 
 
-def run(cmd: list[str], cwd: Path) -> None:
+def run(cmd: list[str], cwd: Path, check: bool = True) -> None:
     log("$ " + " ".join(c if "token" not in c else "<redacted>" for c in cmd))
     p = subprocess.run(cmd, cwd=str(cwd), text=True, capture_output=True)
     if p.returncode != 0:
-        raise SystemExit(f"命令失败：{' '.join(cmd[:2])}\n{(p.stderr or p.stdout)[-800:]}")
+        if check:
+            raise SystemExit(f"命令失败：{' '.join(cmd[:2])}\n{(p.stderr or p.stdout)[-800:]}")
+        log(f"（非致命）{cmd[1]} 返回 {p.returncode}")
+    return None
+
+
+def git_push(remote: str, refspec: str, root: Path) -> None:
+    """先按全局配置推一次；TLS/代理异常时再强制直连推一次。"""
+    direct = ["-c", "http.proxy=", "-c", "https.proxy="]
+    try:
+        run(["git", "push", remote, refspec, "--force"], root)
+        return
+    except SystemExit as e:
+        log(f"推送失败，尝试绕过代理重试：{str(e)[-200:]}")
+    run(["git"] + direct + ["push", remote, refspec, "--force"], root)
 
 
 def iter_text_files(root: Path):
@@ -155,14 +169,14 @@ def main() -> int:
     run(["git", "add", "-A"], root)
     run(["git", "-c", "user.name=" + (me.get("login") or "vsx"), "-c",
          "user.email=" + f"{me.get('login')}@users.noreply.github.com",
-         "commit", "-m", "feat: video-subtitle-extractor v1 初次发布"], root)
+         "commit", "-m", "feat: video-subtitle-extractor v1 初次发布"], root, check=False)
 
     remote = f"https://x-access-token:{args.token}@github.com/{owner}/{args.name}.git"
-    run(["git", "push", remote, "HEAD:refs/heads/main", "--force"], root)
+    git_push(remote, "HEAD:refs/heads/main", root)
     log("代码已推送 main")
 
     run(["git", "tag", "-f", args.tag], root)
-    run(["git", "push", remote, f"refs/tags/{args.tag}", "--force"], root)
+    git_push(remote, f"refs/tags/{args.tag}", root)
 
     st, rel = gh.req("POST", f"/repos/{owner}/{args.name}/releases", {
         "tag_name": args.tag, "name": f"video-subtitle-extractor {args.tag}",
