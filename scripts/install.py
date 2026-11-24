@@ -53,7 +53,7 @@ def repo_root_of(script: Path) -> Path:
 
 # ---------------------------------------------------------------- 取代码
 def fetch_repo(repo: str, ref: str, dest: Path, proxy: str = "") -> Path:
-    """从 GitHub 下载 zip 并解包到 dest（去掉顶层目录）。"""
+    """从 GitHub 下载 zip 并解包到 dest（去掉顶层目录）。网络抖动时自动重试 3 次。"""
     url = f"https://codeload.github.com/{repo}/zip/refs/heads/{ref}"
     log(f"下载代码 {url}")
     handlers = []
@@ -62,8 +62,18 @@ def fetch_repo(repo: str, ref: str, dest: Path, proxy: str = "") -> Path:
     opener = urllib.request.build_opener(*handlers)
     with tempfile.TemporaryDirectory() as tmp:
         zpath = Path(tmp) / "repo.zip"
-        with opener.open(url, timeout=120) as r, open(zpath, "wb") as f:
-            shutil.copyfileobj(r, f, 1 << 20)
+        last = None
+        for attempt in range(1, 4):
+            try:
+                with opener.open(url, timeout=120) as r, open(zpath, "wb") as f:
+                    shutil.copyfileobj(r, f, 1 << 20)
+                last = None
+                break
+            except Exception as e:  # noqa: BLE001
+                last = e
+                log(f"下载失败（第 {attempt}/3 次）：{str(e)[:120]}")
+        if last is not None:
+            raise SystemExit(f"代码下载失败：{last}")
         with zipfile.ZipFile(zpath) as z:
             names = z.namelist()
             top = names[0].split("/")[0] if names else ""

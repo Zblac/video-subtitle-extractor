@@ -20,7 +20,8 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "[bootstrap] 下载安装器 $REPO@$REF"
-curl -fsSL "https://raw.githubusercontent.com/$REPO/$REF/scripts/install.py" -o "$TMP/install.py"
+curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 \
+  "https://raw.githubusercontent.com/$REPO/$REF/scripts/install.py" -o "$TMP/install.py"
 
 echo "[bootstrap] 拉代码 + 装依赖 → $DEST"
 "$PY" "$TMP/install.py" --bootstrap --repo "$REPO" --ref "$REF" --dest "$DEST" \

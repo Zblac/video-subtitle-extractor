@@ -19,7 +19,20 @@ $tmp = Join-Path $env:TEMP ("vsx-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 try {
   Write-Host "[bootstrap] 下载安装器 $Repo@$Ref"
-  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/$Repo/$Ref/scripts/install.py" -OutFile (Join-Path $tmp "install.py")
+  $url = "https://raw.githubusercontent.com/$Repo/$Ref/scripts/install.py"
+  $ok = $false
+  for ($i = 1; $i -le 3; $i++) {
+    try {
+      Invoke-WebRequest -Uri $url -OutFile (Join-Path $tmp "install.py") -UseBasicParsing
+      $ok = $true
+      break
+    }
+    catch {
+      Write-Host "[bootstrap] 第 $i 次下载失败：$($_.Exception.Message)"
+      Start-Sleep -Seconds 3
+    }
+  }
+  if (-not $ok) { throw "安装器下载失败（网络受限时可以设 `$env:HTTPS_PROXY 后重试）" }
 
   Write-Host "[bootstrap] 拉代码 + 装依赖 → $Dest"
   & $Py (Join-Path $tmp "install.py") --bootstrap --repo $Repo --ref $Ref --dest $Dest --install-deps --model $Model
