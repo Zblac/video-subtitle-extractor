@@ -102,7 +102,7 @@ node <skill-dir>/ytsub.js "<视频链接>" --json
 
 - 有官方/自动字幕时 1~3 秒出结果；没配 API token 就走下载 + 转录（30 秒级）。
 - 国内网络**必须**加 `--proxy`，例如 `--proxy http://127.0.0.1:7890`。
-- 若报 `The current machine does not support all of the following ... 403`：加 `--cookies chrome`（先关掉 Chrome，否则 cookie 库被锁）。
+- 若下载阶段报 403 / 需要登录 / `Sign in to confirm you're not a bot`：加 `--cookies chrome`（先关掉 Chrome，否则 cookie 库被锁）。
 
 ### Bilibili / b23.tv
 
