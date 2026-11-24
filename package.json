@@ -1,0 +1,14 @@
+{
+  "name": "video-subtitle-extractor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": { "ytsub": "./ytsub.js" },
+  "description": "视频链接 → 官方字幕 / 本地 Whisper 转录 → srt/vtt/txt/json，一条命令拿到字幕",
+  "scripts": {
+    "start": "node ytsub.js",
+    "doctor": "python scripts/install.py --doctor"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

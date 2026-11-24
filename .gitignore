@@ -1,0 +1,11 @@
+node_modules/
+out/
+models/
+.env
+.vsx-install.json
+__pycache__/
+*.pyc
+*.wav
+cookies/
+.cache/
+.DS_Store

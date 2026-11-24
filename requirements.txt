@@ -1,0 +1,14 @@
+# 运行依赖（Python 侧）
+# faster-whisper 1.2.1 会调用 av.open(metadata_errors=...)，av 19 移除了该参数，
+# 必须锁在 19 以下，否则转录时报 TypeError: unexpected keyword argument 'metadata_errors'
+faster-whisper==1.2.1
+av==18.1.1
+yt-dlp>=2026.10.26
+
+# GPU 加速：Windows 上 ctranslate2 只认 CUDA Toolkit，装了这两个 wheel 并把
+# site-packages/nvidia/*/bin 挂到 DLL 搜索路径（python/transcribe.py 已自动处理）即可用 CUDA
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+
+# 繁→简（whisper 中文输出常为繁体）
+zhconv
