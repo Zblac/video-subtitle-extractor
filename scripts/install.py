@@ -32,6 +32,9 @@ DEFAULT_REPO = os.environ.get("VSX_REPO", "Zblac/video-subtitle-extractor")
 DEFAULT_REF = os.environ.get("VSX_REF", "main")
 HF_MIRROR = os.environ.get("VSX_HF_ENDPOINT", "https://hf-mirror.com")
 
+# 拼接写法：发布脚本按字面替换占位符时，不会把这段“未配置”判断也一起改掉
+UNSET_REPO_MARK = "__GITHUB" + "_OWNER__"
+
 REQUIRED_FILES = ["ytsub.js", "package.json", "lib/config.js", "python/transcribe.py"]
 
 
@@ -234,7 +237,7 @@ def main() -> int:
         if not args.dest:
             log("--bootstrap 需要 --dest（技能目录绝对路径）")
             return 2
-        if "Zblac" in args.repo:
+        if UNSET_REPO_MARK in args.repo:
             log("仓库地址还没配置：请设置 VSX_REPO=owner/repo 或传 --repo owner/repo")
             return 2
         root = fetch_repo(args.repo, args.ref, Path(args.dest).resolve(), args.proxy)

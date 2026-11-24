@@ -29,7 +29,7 @@ from pathlib import Path
 API = "https://api.github.com"
 TEXT_EXT = {".md", ".py", ".ps1", ".sh", ".js", ".json", ".txt", ".yml", ".yaml", ".example"}
 SKIP_DIRS = {".git", "out", "models", "node_modules", "__pycache__", "cookies", ".cache"}
-PLACEHOLDER = "Zblac"
+PLACEHOLDER = "__GITHUB" + "_OWNER__"  # 拼接写法：自身被替换过一次也不会失效
 
 
 def log(msg: str) -> None:
