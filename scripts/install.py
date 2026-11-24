@@ -181,10 +181,18 @@ def check_py_modules() -> dict:
 
 
 def check_model(model_dir: Path) -> dict:
+    """兼容两种落盘方式：HF 缓存（models--Systran--faster-whisper-small/snapshots/.../model.bin）
+    和老的平铺目录（<name>/model.bin）。"""
     if not model_dir.exists():
         return {"ok": False, "dir": str(model_dir), "models": []}
-    found = sorted({p.parent.name for p in model_dir.glob("*/model.bin")})
-    return {"ok": bool(found), "dir": str(model_dir), "models": found}
+    found = set()
+    for p in model_dir.rglob("model.bin"):
+        for part in p.parts:
+            if part.startswith("models--"):
+                found.add(part.split("--")[-1].replace("faster-whisper-", ""))
+        if not found:
+            found.add(p.parent.name)
+    return {"ok": bool(found), "dir": str(model_dir), "models": sorted(found)}
 
 
 def doctor(root: Path, model_dir: Path) -> dict:
