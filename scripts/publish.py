@@ -56,7 +56,13 @@ class GH:
         try:
             with self.opener.open(r, timeout=120) as resp:
                 body = resp.read()
-                return resp.status, (json.loads(body) if body and content_type == "application/json" else body)
+                ctype = resp.headers.get("Content-Type", "")
+                if body and ("json" in ctype or ctype == ""):
+                    try:
+                        return resp.status, json.loads(body)
+                    except Exception:  # noqa: BLE001
+                        return resp.status, body
+                return resp.status, body
         except urllib.error.HTTPError as e:
             body = e.read()
             try:
